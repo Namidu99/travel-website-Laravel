@@ -18,7 +18,7 @@ Auth::routes(['register' => false]);
 Route::group(['middleware' => ['is_admin','auth'], 'prefix' => 'admin', 'as' => 'admin.'], function() {
     Route::get('dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
-    // booking
+    // booking           
     Route::resource('bookings', \App\Http\Controllers\Admin\BookingController::class)->only(['index', 'destroy']);
     // travel packages
     Route::resource('travel_packages', \App\Http\Controllers\Admin\TravelPackageController::class)->except('show');
