@@ -55,6 +55,12 @@
                                 <span>Contact</span>
                             </a>
                         </li>
+                        <li class="nav__item">
+                            <a href="{{ route('ai_guide.index') }}" class="nav__link {{ request()->is('ai-guide') ? ' active-link' : '' }}">
+                                <i class="bx bx-bot"></i>
+                                <span>AI Guide</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
