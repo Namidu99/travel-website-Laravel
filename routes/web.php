@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AiGuideController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,3 +48,6 @@ Route::get('contact', function() {
 })->name('contact');
 // booking
 Route::post('booking', [App\Http\Controllers\BookingController::class, 'store'])->name('booking.store');
+// AI Guide chatbot
+Route::get('ai-guide', [AiGuideController::class, 'index'])->name('ai_guide.index');
+Route::post('ai-guide/chat', [AiGuideController::class, 'chat'])->name('ai_guide.chat');
