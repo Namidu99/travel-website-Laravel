@@ -123,6 +123,8 @@ class AiGuideController extends Controller
             'kandy'      => ['kandy', 'dumbara'],
             'galle'      => ['galle', 'southern'],
             'colombo'    => ['colombo'],
+            'matara'     => ['matara'],
+            'gampaha'    => ['gampaha'],
         ];
 
         $msgLower  = strtolower($message);
@@ -145,14 +147,15 @@ class AiGuideController extends Controller
      */
     private function searchIndustries(array $keywords, string $rawMessage): \Illuminate\Database\Eloquent\Collection
     {
-        $query = TravelPackage::query();
+        $query = TravelPackage::with('category');
 
         if (!empty($keywords)) {
             $query->where(function ($q) use ($keywords, $rawMessage) {
                 // Search by matched keyword categories
                 foreach ($keywords as $kw) {
-                    $q->orWhere('type', 'LIKE', "%{$kw}%")
-                      ->orWhere('location', 'LIKE', "%{$kw}%")
+                    $q->orWhere('name', 'LIKE', "%{$kw}%")
+                      ->orWhere('district', 'LIKE', "%{$kw}%")
+                      ->orWhere('best_for', 'LIKE', "%{$kw}%")
                       ->orWhere('description', 'LIKE', "%{$kw}%");
                 }
 
@@ -162,10 +165,20 @@ class AiGuideController extends Controller
                 foreach ($words as $word) {
                     $word = preg_replace('/[^a-z]/', '', $word);
                     if (strlen($word) > 3 && !in_array($word, $stopWords)) {
-                        $q->orWhere('type', 'LIKE', "%{$word}%")
-                          ->orWhere('location', 'LIKE', "%{$word}%")
+                        $q->orWhere('name', 'LIKE', "%{$word}%")
+                          ->orWhere('district', 'LIKE', "%{$word}%")
+                          ->orWhere('best_for', 'LIKE', "%{$word}%")
                           ->orWhere('description', 'LIKE', "%{$word}%");
                     }
+                }
+            });
+        }
+
+        // Also search the related category name via a join
+        if (!empty($keywords)) {
+            $query->orWhereHas('category', function ($q) use ($keywords) {
+                foreach ($keywords as $kw) {
+                    $q->orWhere('name', 'LIKE', "%{$kw}%");
                 }
             });
         }
@@ -181,7 +194,7 @@ class AiGuideController extends Controller
     {
         if ($industries->isEmpty()) {
             // Fall back to all industries for general queries
-            $industries = TravelPackage::limit(6)->get();
+            $industries = TravelPackage::with('category')->limit(6)->get();
         }
 
         if ($industries->isEmpty()) {
@@ -192,8 +205,12 @@ class AiGuideController extends Controller
 
         foreach ($industries as $industry) {
             $lines[] = "---";
-            $lines[] = "Name/Location: {$industry->location}";
-            $lines[] = "Category/Type: {$industry->type}";
+            $lines[] = "Name: {$industry->name}";
+            $lines[] = "Category: " . ($industry->category->name ?? 'N/A');
+            $lines[] = "District: {$industry->district}";
+            if ($industry->best_for) {
+                $lines[] = "Best For: {$industry->best_for}";
+            }
             $lines[] = "Price/Entry: \${$industry->price}";
             $desc = strip_tags($industry->description ?? '');
             if ($desc) {
