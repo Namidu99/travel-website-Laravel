@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Category;
 use App\Models\Gallery;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class TravelPackageController extends Controller
      */
     public function index()
     {
-        $travel_packages = TravelPackage::paginate(10);
+        $travel_packages = TravelPackage::with('category')->paginate(10);
 
         return view('admin.travel_packages.index', compact('travel_packages'));
     }
@@ -26,7 +27,9 @@ class TravelPackageController extends Controller
      */
     public function create()
     {
-        return view('admin.travel_packages.create');
+        $categories = Category::orderBy('name')->get();
+
+        return view('admin.travel_packages.create', compact('categories'));
     }
 
     /**
@@ -34,14 +37,21 @@ class TravelPackageController extends Controller
      */
     public function store(TravelPackageRequest $request)
     {
-        if($request->validated()) {
-            $slug = Str::slug($request->location, '-');
-            $travel_package = TravelPackage::create($request->validated() + ['slug' => $slug ]);
+        if ($request->validated()) {
+            $slug = Str::slug($request->name, '-');
+            // Ensure slug uniqueness
+            $baseSlug = $slug;
+            $count = 1;
+            while (TravelPackage::where('slug', $slug)->exists()) {
+                $slug = $baseSlug . '-' . $count++;
+            }
+
+            $travel_package = TravelPackage::create($request->validated() + ['slug' => $slug]);
         }
 
         return redirect()->route('admin.travel_packages.edit', [$travel_package])->with([
-            'message' => 'Success Created !',
-            'alert-type' => 'success'
+            'message'    => 'Success Created !',
+            'alert-type' => 'success',
         ]);
     }
 
@@ -50,9 +60,10 @@ class TravelPackageController extends Controller
      */
     public function edit(TravelPackage $travel_package)
     {
-        $galleries = Gallery::paginate(10);
-        
-        return view('admin.travel_packages.edit', compact('travel_package','galleries'));
+        $galleries  = Gallery::paginate(10);
+        $categories = Category::orderBy('name')->get();
+
+        return view('admin.travel_packages.edit', compact('travel_package', 'galleries', 'categories'));
     }
 
     /**
@@ -60,14 +71,21 @@ class TravelPackageController extends Controller
      */
     public function update(TravelPackageRequest $request, TravelPackage $travel_package)
     {
-        if($request->validated()) {
-            $slug = Str::slug($request->location, '-');
+        if ($request->validated()) {
+            $slug = Str::slug($request->name, '-');
+            // Ensure slug uniqueness (exclude current record)
+            $baseSlug = $slug;
+            $count = 1;
+            while (TravelPackage::where('slug', $slug)->where('id', '!=', $travel_package->id)->exists()) {
+                $slug = $baseSlug . '-' . $count++;
+            }
+
             $travel_package->update($request->validated() + ['slug' => $slug]);
         }
 
         return redirect()->route('admin.travel_packages.index')->with([
-            'message' => 'Success Updated !',
-            'alert-type' => 'info'
+            'message'    => 'Success Updated !',
+            'alert-type' => 'info',
         ]);
     }
 
@@ -79,8 +97,8 @@ class TravelPackageController extends Controller
         $travel_package->delete();
 
         return redirect()->back()->with([
-            'message' => 'Success Deleted !',
-            'alert-type' => 'danger'
+            'message'    => 'Success Deleted !',
+            'alert-type' => 'danger',
         ]);
     }
 }
