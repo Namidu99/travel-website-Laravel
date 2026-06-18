@@ -27,8 +27,10 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Type</th>
-                                        <th>Location</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>District</th>
+                                        <th>Best For</th>
                                         <th>Price</th>
                                         <th>Action</th>
                                     </tr>
@@ -37,8 +39,10 @@
                                 @foreach($travel_packages as $travel_package)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $travel_package->type }}</td>
-                                        <td>{{ $travel_package->location }}</td>
+                                        <td>{{ $travel_package->name }}</td>
+                                        <td>{{ $travel_package->category->name ?? '—' }}</td>
+                                        <td>{{ $travel_package->district }}</td>
+                                        <td>{{ $travel_package->best_for ?? '—' }}</td>
                                         <td>{{ $travel_package->price }}</td>
                                         <td>
                                             <a href="{{ route('admin.travel_packages.edit', [$travel_package]) }}" class="btn btn-sm btn-info"> <i class="fa fa-edit"></i> </a>              

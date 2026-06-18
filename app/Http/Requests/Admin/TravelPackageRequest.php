@@ -21,22 +21,26 @@ class TravelPackageRequest extends FormRequest
      */
     public function rules(): array
     {
-        switch($this->method()) {
-            case 'POST' : {
+        switch ($this->method()) {
+            case 'POST': {
                 return [
-                    'type' => 'required',
-                    'location' => 'required',
-                    'price' => 'required',
-                    'description' => 'required'
+                    'name'        => 'required|string|max:255',
+                    'category_id' => 'nullable|exists:categories,id',
+                    'district'    => 'required|string|max:255',
+                    'best_for'    => 'nullable|string|max:255',
+                    'price'       => 'required|numeric|min:0',
+                    'description' => 'required',
                 ];
             }
             case 'PUT':
             case 'PATCH': {
                 return [
-                    'type' => 'required',
-                    'location' => 'required',
-                    'price' => 'required',
-                    'description' => 'required'
+                    'name'        => 'required|string|max:255',
+                    'category_id' => 'nullable|exists:categories,id',
+                    'district'    => 'required|string|max:255',
+                    'best_for'    => 'nullable|string|max:255',
+                    'price'       => 'required|numeric|min:0',
+                    'description' => 'required',
                 ];
             }
         }
